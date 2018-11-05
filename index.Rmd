@@ -1,0 +1,98 @@
+---
+title: "Congress Data Report"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+source("assignment5Script.R")
+topic <- "privacy"
+member <- "S000510"
+```
+
+``` {r bill_data, echo = FALSE}
+data <- get_bill_data(topic)
+
+# selects the relevant columns from the 'data' data frame and names the columns appropriately to be displayed in a table
+formated_data <- select(data, "Bill ID" = bill_id, "Bill Title" = title, "Sponsor Information" =  sponsor_info, 
+               "Latest Major Action" = latest_major_action, "Active" = active, "Passed House" = house_passage,
+               "Passed Senate" = senate_passage, "Enacted Into Law" = enacted, "Vetoed" = vetoed,
+               "Link To Read More" = congressdotgov_url)
+
+part_1_title <- paste0("## Part 1: Recent Bills <br/>Topic: ", topic)
+```
+
+`r part_1_title`
+
+```{r table_of_bills, echo = FALSE}
+# creates a table of the 10 most recent bills of the topic
+kable(formated_data[1:10, ], format = "markdown")
+```
+
+- **Bill ID**: This column shows the unique ID number for the bill in that row. This identifier is assigned based on several aspects. First, Bills are prefixed with hr when introduced in the House and s when introduced in the Senate, Joint resolutions are designated hjres or sjres, Concurrent resolutions, which are designated hconres or sconres, Simple resolutions are designated HRes and SRes. Next there is a number unique to each bill in the current congress and is based on when the bill was introduced. Finally there is a number 115 at the end of the ID representing that these bills are part of the 115 congress.^[https://www.senate.gov/legislative/common/briefing/leg_laws_acts.htm]
+
+- **Bill Title**: The title or name of the bill gives a brief explanation of the goals of the bill and what the bill is about.
+
+- **Sponsor Information**: Every bill has a sponsor, in this column has a the name of the sponsor displayed along with their party, and their state. Also displayed is the amount of Democratic and Republic sponsors the bill has.
+
+- **Latest Major Action**: The latest major action explains the last notable action taken towards the bill. This could include referring it to a committee or submitting it to house or senate.
+
+- **Active**: This column shows if the bill is active or not. If this value is false, the bill is not active, meaning the bill has not gone past any stages other than the introduction and committee referrals. If the value is true, then the bill has gone past these stages. ^[https://www.congress.gov]
+
+- **Passed House**: This column displays the date that the bill was passed through the House of representatives, if the bill was not yet passed through the House of representatives, the value would display as "NA".
+
+- **Passed Senate**: This column displays the date that the bill was passed through the Senate, if the bill was not yet passed through the Senate, the value would display as "NA".
+
+- **Enacted Into Law**: This column displays the date that the bill was enacted into law, if the bill was not yet passed through the House of representatives, the value would display as "NA". A bill is enacted into law if it's passed through Senate, the House of Representatives, and signed by the president.^[https://www.senate.gov/legislative/common/briefing/Enactment_law.htm]
+
+- **Vetoed**: This column displays the date that the bill was vetoed, if the bill was not vetoed, the value would display as "NA". A bill is vetoed if it's not passed because the president did not sign it.
+
+- **Link to Read More**: This column provides a link that leads to more information on the legislation in that row. This information is contained on congress.gov, a government database of all legislation in congress.
+
+
+```{r section 2, single legislation, echo = FALSE}
+bill_to_analyze <- data[13, ]
+
+part_2_title <- paste0("## Part 2: Specific Legislation Analysis <br/>Legislation Analyzed: ", bill_to_analyze$short_title)
+
+# creates an intro paragraph with the relevant legislation information that changes based on the legislation chosen
+paragraph_intro <- paste("One specific legislation on the topic of", topic, "is the bill:", bill_to_analyze$title, "Also known as the", bill_to_analyze$short_title,". This bill is sponsored by", bill_to_analyze$sponsor_name, "from the state", bill_to_analyze$sponsor_state, "and from the party:", bill_to_analyze$sponsor_party, ". There are also", bill_to_analyze$cosponsors_by_party.D, "Democratic co-sponsors, and", bill_to_analyze$cosponsors_by_party.R, "Republican co-sponsors. More information about this bill can be found at the", paste0("[bill's congress.gov website]", "(", bill_to_analyze$congressdotgov_url, ")."))
+  
+```
+
+`r part_2_title`
+
+`r paragraph_intro`
+
+The purpose of this bill is to protect vulnerable populations such as immigrants and minors from identity theft. This is done by maintaining a database or verification system that's maintained by the Commissioner of the Social Security Administration. ^[https://www.congress.gov/bill/115th-congress/house-bill/5192/text] According to a press release for this bill, minors and children have their identity stolen 50% more than adults. In order to combat this, a proposed verification system would be to have financial institutions require electronic signatures to compare with the signature of the supposed identity.^[https://curbelo.house.gov/news/documentsingle.aspx?DocumentID=1883] I believe that based on this information, this bill should be voted on by our representatives. The modernization of the security technologies of sensitive information such as finances and identity is very important in a word of fast evolving technologies.
+
+So far this bill has been introduced to the house of representatives and passed through with a vote of 420 - 1. The bill has since been sent to senate, read twice, then sent to the Committee of Finance, where it is now. ^[https://www.congress.gov/bill/115th-congress/house-bill/5192/all-actions?overview=closed#tabs] This bill still needs to pass senate and be signed by the President in order to be enacted into law. Based on its recent vote ratio in senate, I believe this bill has a very high possibility of becoming a law.
+
+```{r section 3 Representative Actions, echo = FALSE}
+
+member_data <- get_legislature_data(member)
+member_bills <- get_bills_by_member(member)
+
+part_3_title <- paste0("## Part 3: Representative Actions <br/>Representative: ", member_data$first_name, " ", member_data$last_name)
+
+member_contact_info <- paste0("### **Facebook Account: **", member_data$facebook_account, "  <br/> **Twitter Account: **", member_data$twitter_account, "<br/><br/> **Bills Introduced:** <br/>")
+
+
+```
+
+`r part_3_title`
+
+`r member_contact_info`
+```{r member bills table, echo = FALSE}
+
+kable(member_bills, format = "markdown")
+```
+
+```{r member_vote_majority_percentage, echo = FALSE}
+
+percentage_vote_with_opp <- vote_with_opp_majority(member)
+
+percentage_sentence <- paste0("### Out of the 20 most recent votes, **", percentage_vote_with_opp, "%** of ", member_data$first_name, " ", member_data$last_name, "'s votes were with the opposite party.")
+```
+
+`r percentage_sentence`
